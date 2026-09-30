@@ -1,6 +1,6 @@
 configparser==5.0.2
 asyncio==3.4.3
 numpy
-opencv-python
+opencv-python-headless
 pytube
 discord.py-self[voice]==1.7.3

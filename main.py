@@ -45,12 +45,9 @@ async def start_bot(token, index):
 
     @bot.command()
     async def pingtest(ctx):
-        if token == config['BotTokens'].get(f'token{index}'):
-            latency = bot.latency
-            latency_in_ms = round(latency * 1000)
-            await ctx.send(f'{latency_in_ms}ms')           
-        else:
-            logging.info("Error")
+        latency = bot.latency
+        latency_in_ms = round(latency * 1000)
+        await ctx.send(f'{latency_in_ms}ms')           
 
     @bot.command()
     async def Massjoin(ctx, channel_id: int, source: str):
@@ -59,53 +56,49 @@ async def start_bot(token, index):
         print(Radiumhvh)
         print(f"tokens: {len(tokens)}")
 
-        if token == config['BotTokens'].get(f'token{index}'):
-            logging.info("[+] Token passed")
-            channel = bot.get_channel(channel_id)
+        logging.info("[+] Token passed")
+        channel = bot.get_channel(channel_id)
 
-            if channel and isinstance(channel, discord.VoiceChannel):
-                logging.info("[+] Valid voice channel found.")
-                if ctx.voice_client:
-                    logging.info("[+] Disconnecting")
-                    await ctx.voice_client.disconnect()
+        if channel and isinstance(channel, discord.VoiceChannel):
+            logging.info("[+] Valid voice channel found.")
+            if ctx.voice_client:
+                logging.info("[+] Disconnecting")
+                await ctx.voice_client.disconnect()
 
-                logging.info("[+] Attempting.")
-                try:
-                    voice_channel = await channel.connect()
-                    logging.info(f"[+] Successfully joined {channel.name}")
-                    print(f"[+] Successfully joined {channel.name}")
+            logging.info("[+] Attempting.")
+            try:
+                voice_channel = await channel.connect()
+                logging.info(f"[+] Successfully joined {channel.name}")
+                print(f"[+] Successfully joined {channel.name}")
 
-                    if source.endswith('.mp3'):
-                        audio_file_path = os.path.join('Audio', source)
-                        voice_channel.play(discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(audio_file_path), volume=1.5))
-                    else:
-                        video = YouTube(source)
-                        video_title = "".join(c for c in video.title if c.isalnum() or c.isspace())
-                        audio_file_path = os.path.join('Audio', f'{video_title}.mp3')
-                        video_stream = video.streams.filter(only_audio=True).first()
-                        video_stream.download(output_path='Audio', filename=f'{video_title}.mp3')
-                        voice_channel.play(discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(audio_file_path), volume=2.5))
+                if source.endswith('.mp3'):
+                    audio_file_path = os.path.join('Audio', source)
+                    voice_channel.play(discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(audio_file_path), volume=1.5))
+                else:
+                    video = YouTube(source)
+                    video_title = "".join(c for c in video.title if c.isalnum() or c.isspace())
+                    audio_file_path = os.path.join('Audio', f'{video_title}.mp3')
+                    video_stream = video.streams.filter(only_audio=True).first()
+                    video_stream.download(output_path='Audio', filename=f'{video_title}.mp3')
+                    voice_channel.play(discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(audio_file_path), volume=2.5))
 
-                    logging.info("[+] Playing Sound")
-                    print("[+] Playing Sound")
+                logging.info("[+] Playing Sound")
+                print("[+] Playing Sound")
 
-                    while voice_channel.is_playing():
-                        await asyncio.sleep(1)
+                while voice_channel.is_playing():
+                    await asyncio.sleep(1)
 
-                    logging.info("[+] Audio done")
-                    os.system('clear')
-                    print(Radiumhvh)
-                    print(f"tokens: {len(tokens)}")
-                    await voice_channel.disconnect()
+                logging.info("[+] Audio done")
+                os.system('clear')
+                print(Radiumhvh)
+                print(f"tokens: {len(tokens)}")
+                await voice_channel.disconnect()
 
-                except Exception as e:
-                    logging.error(f"[-] error  joining/playing: {e}")
-
-            else:
-                logging.warning("[-] Invalid voice channel")
+            except Exception as e:
+                logging.error(f"[-] error  joining/playing: {e}")
 
         else:
-            logging.error("Error")
+            logging.warning("[-] Invalid voice channel")
 
     @bot.command()
     async def disconnectall(ctx):
@@ -175,19 +168,14 @@ async def start_bot(token, index):
 
     await bot.start(token)
 
-config = configparser.ConfigParser()
-config.read('config.cfg')
+# Get token from environment variable
+bot_token = os.getenv('BOT_TOKEN') or os.getenv('bot_token')
 
-if 'BotTokens' not in config:
-    print("No 'BotTokens' section found in the config file.")
-    exit()
+if not bot_token:
+    print("Error: BOT_TOKEN environment variable not set")
+    exit(1)
 
-tokens = [config['BotTokens'].get(f'token{i}') for i in range(1, len(config['BotTokens']) + 1)]
-
-if not tokens:
-    print("No tokens found in the config file.")
-    exit()
-
+tokens = [bot_token]
 
 print(f"tokens: {len(tokens)}")
 
